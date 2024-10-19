@@ -1,10 +1,12 @@
 # DS 5690: LongLoRA Paper Presentation
 
-## Overview (5 minutes)
+## Overview 
+
+**Definition:** The maximum amount of information it can take as input for a query
 
 * Brief introduction to the problem of extending context length in LLMs
-Challenges with current methods (computational cost, efficiency)
-LongLoRA's approach: Efficient fine-tuning for long-context adaptation
+* Challenges with current methods (computational cost, efficiency)
+* LongLoRA's approach: Efficient fine-tuning for long-context adaptation
 
 
 ## Architecture Overview
@@ -48,14 +50,14 @@ Comparison with previous models/approaches
 ## Resource Links
 * GitHub repository
 * Related papers
- * [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685)
- * [LoRA GitHub Repository](https://github.com/microsoft/LoRA)
+	 * [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685)
+	 * [LoRA GitHub Repository](https://github.com/microsoft/LoRA)
 * Relevant blog posts and videos 
- * [How to code long-context LLM: LongLoRA explained on LLama 2 100K](https://www.youtube.com/watch?v=hf5N-SlqRmA)	
+	 * [How to code long-context LLM: LongLoRA explained on LLama 2 100K](https://www.youtube.com/watch?v=hf5N-SlqRmA)	
 
 
 
-Original LongLoRA README included below:
+## Original LongLoRA README:
 
 </p>
 </p>

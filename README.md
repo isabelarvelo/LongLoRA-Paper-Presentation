@@ -1,3 +1,60 @@
+# DS 5690: LongLoRA Paper Presentation
+
+## Overview (5 minutes)
+
+* Brief introduction to the problem of extending context length in LLMs
+Challenges with current methods (computational cost, efficiency)
+LongLoRA's approach: Efficient fine-tuning for long-context adaptation
+
+
+## Architecture Overview
+
+### Key components of LongLoRA:
+
+a. Shifted Sparse Attention (S2-Attn)
+
+
+
+b. Improved LoRA (LoRA+)
+
+
+
+## Pseudocode description (based on the formal algorithms paper style)
+
+Comparison with previous models/approaches
+
+
+## Key Questions 
+
+### Q1: How does S2-Attn work and why is it effective?
+
+* Explanation of S2-Attn mechanism
+* Benefits over full attention during training
+* Consistency with full attention during inference
+
+### Q2: What improvements does LongLoRA make to standard LoRA?
+
+* Role of trainable embedding and normalization layers
+* Why these changes are crucial for long-context adaptation
+
+
+## Impacts
+
+* Significance for efficient LLM adaptation
+* Potential applications and use cases
+* Future implications for long-context understanding in AI
+
+
+## Resource Links
+* GitHub repository
+* Related papers
+ * [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685)
+ * [LoRA GitHub Repository](https://github.com/microsoft/LoRA)
+* Relevant blog posts and videos 
+ * [How to code long-context LLM: LongLoRA explained on LLama 2 100K](https://www.youtube.com/watch?v=hf5N-SlqRmA)	
+
+
+
 <p align="center" width="100%">
 <img src="imgs/LongAlpaca.png" alt="Stanford-Alpaca" style="width: 100%; min-width: 300px; display: block; margin: auto;">
 </p>

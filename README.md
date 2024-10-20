@@ -1,8 +1,10 @@
 # DS 5690: LongLoRA Paper Presentation
 
-## Overview 
+## Motivation 
 
-**Definition:** The maximum amount of information an LLM can take as input for a query. LLMs are stateless (each incoming query is processed independently of other interactions), so their 'memory' is essentially their context window
+
+
+**Contex Length:** The maximum amount of information an LLM can take as input for a query. LLMs are stateless (each incoming query is processed independently of other interactions), so their 'memory' is essentially their context window
 
 * Longer context allows LLMs to handle:
 	* Entire documents, including research papers or even books
@@ -15,41 +17,31 @@
   		* answering questions about extensive content
    		* maintaining coherence in long conversations
 
-+-------------------+----------------+
+
+
 | Model             | Context Length |
-+-------------------+----------------+
+|:------------------|----------------|
 | Ministral 8B      | 128k           |
-+-------------------+----------------+
 | GPT 3.5           | 4,096          |
-+-------------------+----------------+
 | GPT 4             | 8,192          |
-+-------------------+----------------+
 | Llama 1           | 2,048          |
-+-------------------+----------------+
 | Llama 2           | 4,096          |
-+-------------------+----------------+
 | Llama 3           | 8,192          |
-+-------------------+----------------+
 | Claude Sonnet 3.5 | 200k           |
-+-------------------+----------------+
 | gpt-4o            | 128k           |
-+-------------------+----------------+
 | Gemma 7B          |  8,192         |
-+-------------------+----------------+
 
-
-*For reference, the novel The Great Gatsby is 72k tokens 
+*For reference, the novel The Great Gatsby is 72k tokens*
 
 * Extending context length is not trivial 
 	* The primary challenge is the computational complexity of self-attention
  	* Self-attention has quadratic O(n^2) complexity with respect to sequence length
    		*For instance, extending from 2,048 to 8,192 context length needs **16×** more computation in self-attention layers
 
-* Current Approaches and Their Limitations
+* Current Approaches and their limitations
 	* Full fine-tuning for longer contexts is extremely resource-intensive
   		*[Position Interpolation](https://arxiv.org/abs/2306.15595) method used 32 A100 GPUs for 2k to 8k context extension, 128 A100 GPUs for longer context fine-tuning
-	* Empirical evidence has found that using LoRA for context extension has high perplexity and this still doesn't adress the computational complexity of the standard
-self-attention mechanism
+
 
 ## LoRA Refresher  
 
@@ -61,27 +53,26 @@ self-attention mechanism
  * Enables the adaptation of large models to specific tasks without the heavy computational burden of traditional fine-tuning, which is particularly useful in low-data regimes or when computation resources are limited
  * Good for AI teams' budgets and the environment
 
+<p align="center" width="100%">
+<img src="original_lora_viz.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+</p>
+
+
+* Empirical evidence has found that using LoRA for context extension has high perplexity (less certainty in predictions) and this still doesn't address the computational complexity of the standard self-attention mechanism
+
+
+**How can we can efficently and effectively extend the context of pre-trained LLMs?**
+
+Introducing ... LongLoRA ! Using this method, researchers were able to extend Llama2 7B to 100k context length and 70B model to 32k context length, on a **single** 8× A100 machine.
 
 
 
 ## Architecture Overview
 
-
-
-### Key components of LongLoRA:
+### Major Contributions of LongLoRA:
 
 a. Shifted Sparse Attention (S2-Attn)
-
-
-
 b. Improved LoRA (LoRA+)
-
-
-
-## Pseudocode description (based on the formal algorithms paper style)
-
-Comparison with previous models/approaches
-
 
 ## Key Questions 
 
@@ -95,6 +86,82 @@ Comparison with previous models/approaches
 
 * Role of trainable embedding and normalization layers
 * Why these changes are crucial for long-context adaptation
+
+### Key components of LongLoRA:
+
+a. Shifted Sparse Attention (S2-Attn)
+
+<p align="center" width="100%">
+<img src="imgs/Shift-short-attention2.png" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+</p>
+
+
+* **Explanation:**
+
+	* S2-Attn is an efficient approximation of full attention used during training.
+	* It allows for efficient computation while maintaining performance close to full attention.
+
+* **Key points**:
+  
+	* How it works:
+		* Splits the input sequence into several groups.
+		* Applies attention separately within each group.
+		* In half of the attention heads, shifts the group partition by half the group size.
+
+	* Implementation:
+		* Can be implemented with just two lines of code during training.
+		* Does not require changes to the model architecture for inference.
+  		* See [s2_attention_example.ipynb](https://github.com/isabelarvelo/LongLoRA/blob/main/s2_attention_example.ipynb) for a more in depth walk through 
+ 
+<p align="center" width="100%">
+<img src="shifted-sparse-attention-pseudocode.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+</p>
+
+	* Benefits:
+		* Reduces computational cost significantly during training.
+		* Enables information flow between different groups through shifting.
+		* Achieves performance close to full attention fine-tuning.
+
+	* Comparison to other methods:
+  		* Unlike other efficient attention designs (e.g., dilated or sparse attention), S2-Attn has a smaller gap to standard attention.
+		* Models trained with S2-Attn can use full attention during inference.
+  			* The shifting mechanism in S2-Attn prevents the model from overfitting to specific attention patterns, which allows it to generalize better when using full attention during inference.
+		* Models fine-tuned with S2-Attn retain the original attention architecture during inference which allows the use of existing optimizations and infrastructure for inference.
+
+
+      [Insert table here]
+
+* When testing with the same attention pattern used in training (first row), S2-Attn performs well (8.64 perplexity).
+* When testing with full attention (second row), S2-Attn still performs well (8.12 perplexity).
+Other attention patterns like dilated, block sparse, and stride sparse attention show larger discrepancies between training and full-attention testing, or perform poorly overall.
+
+
+b. Improved LoRA (LoRA+)
+
+<p align="center" width="100%">
+<img src="long_lora_plus.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+</p>
+
+**Explanation:**
+
+	* Makes embedding and normalization layers trainable.
+	* These layers occupy a small proportion of total parameters but are crucial for long-context learning.
+
+**Importance of trainable layers:**
+
+	* Embedding: <2% of parameters in Llama2 7B
+	* Normalization: ≤0.004% of parameters
+	* Empirical results show a large performance gap between LoRA and full fine-tuning for long contexts, even with larger LoRA ranks
+
+**Performance:**
+	* Making embedding and normalization trainable closes this gap between standard LoRA and full fine-tuning for long contexts.
+	* Achieves comparable results to full fine-tuning with much lower computational cost.
+
+
+## Pseudocode description (based on the formal algorithms paper style)
+
+Comparison with previous models/approaches
+
 
 
 ## Impacts

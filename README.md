@@ -2,21 +2,73 @@
 
 ## Motivation 
 
-
-
-**Contex Length:** The maximum amount of information an LLM can take as input for a query. LLMs are stateless (each incoming query is processed independently of other interactions), so their 'memory' is essentially their context window
+**Context Length:** The maximum amount of information an LLM can take as input for a query. LLMs are stateless (each incoming query is processed independently of other interactions), so their 'memory' is essentially their context window
 
 * Longer context allows LLMs to handle:
 	* Entire documents, including research papers or even books
 	* Large databases or codebases
 	* Multiple data sources simultaneously
+ 	* Extended conversations or multi-turn dialogues
+ 	* Complex tasks requiring integration of information from various parts of a long input
 
 * Current Limitations
 	* Most LLMs are pre-trained with fixed context sizes which restrict LLMs in many applications such as:
-		* summarizing long documents
-  		* answering questions about extensive content
-   		* maintaining coherence in long conversations
+		* Summarizing long documents
+		* Answering questions about extensive content
+		* Maintaining coherence in long conversations
+		* Analyzing large datasets or codebases in their entirety
+		* Performing tasks that require understanding of broader context or long-term dependencies
+ 
 
+## Problem Statement : Extending context length is not trivial 
+
+* Computational Complexity:
+	* The primary challenge is the quadratic O(n^2) complexity of self-attention with respect to sequence length
+	* For instance, extending from 2,048 to 8,192 context length requires **16×** more computation in self-attention layers
+
+
+
+* Memory Requirements:
+	* Longer sequences require more GPU memory to store attention matrices and intermediate activations
+	* This often exceeds the capacity of available hardware, especially for larger models
+* Overfitting and Generalization:
+	* Models may overfit to specific long-context patterns seen during training
+	* Ensuring generalization to various types of long-context tasks is crucial
+
+## Current Approaches 
+
+* Long-context Transformers and their limitations
+	* Sparse Attention Mechanisms:
+		* Approach: Using various sparse attention patterns to reduce computational complexity
+  		* Examples: [Longformer](https://huggingface.co/docs/transformers/en/model_doc/longformer), [BigBird](https://huggingface.co/docs/transformers/en/model_doc/big_bird)
+		* Limitation: May sacrifice some performance or struggle with certain types of long-range dependencies
+
+	* Recurrent Memory Mechanisms:
+		* Approach: Incorporating explicit memory structures to extend effective context
+		* Examples: Transformer-XL, Compressive Transformers
+		* Limitation: Compressions have a large gap to full attention, making it infeasible to fine-tune pre-trained LLMs
+
+	* Retrieval-Augmented Models:
+
+		* Approach: Combining LLMs with external retrieval systems to access relevant information
+		* Examples: REALM, RAG (Retrieval-Augmented Generation)
+		* Limitation: Relies on effective retrieval systems and may struggle with seamless integration of retrieved information
+
+	* Context Compression Techniques:
+
+		* Approach: Dynamically compressing or summarizing past context
+		* Examples: LongNet, Memorizing Transformers
+		* Limitation: May lose some fine-grained details in the compression process
+
+
+* Long-context LLMS and their limitations:
+ 	* Full Fine-tuning:
+ 		* Approach: Retraining the entire model on longer sequences
+ 		* Limitation: Extremely resource-intensive
+   		* Example: [Position Interpolation](https://arxiv.org/abs/2306.15595) method used 32 A100 GPUs for 2k to 8k context extension, 128 A100 GPUs for longer context fine-tuning
+     	* Other methods like [Landmark Attention](https://arxiv.org/abs/2305.16300) are efficient, but prone to losing information 
+
+**Core Tradeoff**: Efficiency vs Full Information Retention 
 
 
 | Model             | Context Length |
@@ -31,16 +83,20 @@
 | gpt-4o            | 128k           |
 | Gemma 7B          |  8,192         |
 
-*For reference, the novel The Great Gatsby is 72k tokens*
+*For reference, the novel The Great Gatsby (208 pages) is 72k tokens*
 
-* Extending context length is not trivial 
-	* The primary challenge is the computational complexity of self-attention
- 	* Self-attention has quadratic O(n^2) complexity with respect to sequence length
-   		*For instance, extending from 2,048 to 8,192 context length needs **16×** more computation in self-attention layers
+## Solution 
 
-* Current Approaches and their limitations
-	* Full fine-tuning for longer contexts is extremely resource-intensive
-  		*[Position Interpolation](https://arxiv.org/abs/2306.15595) method used 32 A100 GPUs for 2k to 8k context extension, 128 A100 GPUs for longer context fine-tuning
+* Having general purpose long context models available for our everyday workflow is incredible, but what if _we_ (collective of AI students and researchers without acces to swaths of VC funding or infinite time) want to
+	* fine-tune a model to understand and summarize entire research papers, including methods, results, and discussions?
+	* fine-tune a model to analyze entire contracts, identifying key clauses and potential issues across hundreds of pages?
+	* fine-tune a model to analyze a patient's complete medical record, including years of notes, test results, and treatments, to assist in diagnosis and treatment planning?
+	* fine-tune a model to understand entire codebases, providing more context-aware suggestions and bug detection across multiple files and functions?
+	* fine-tune a model to analyze textbooks and generate tailored lesson plans, quizzes, and study guides that cover entire subjects or courses?
+	* fine-tune a model to process entire quarterly reports, market analyses, and historical data to provide more comprehensive investment insights?
+
+LongLoRA enables individuals and small teams to fine-tune models for specialized tasks that require processing and understanding large amounts of context-rich information, which was previously impractical or impossible due to computational constraints! It offers a balance between computational efficiency and maintaining the full capabilities of the original model architecture.
+
 
 
 ## LoRA Refresher  
@@ -58,7 +114,10 @@
 </p>
 
 
-* Empirical evidence has found that using LoRA for context extension has high perplexity (less certainty in predictions) and this still doesn't address the computational complexity of the standard self-attention mechanism
+* Empirical evidence has found that using LoRA for context extension is neither _effective_ or _efficient_
+	* has high perplexity (less certainty in predictions)
+  	* standard self-attention mechanism still yields dramatic increases in computational complexity as context length extends 
+
 
 
 **How can we can efficently and effectively extend the context of pre-trained LLMs?**
@@ -170,16 +229,70 @@ Comparison with previous models/approaches
 * Potential applications and use cases
 * Future implications for long-context understanding in AI
 
+## Other methodology worth mentioning 
+While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverages several other important techniques that are crucial for efficient long-context fine-tuning:
+
+* DeepSpeed:
+	* Implements Zero Redundancy Optimizer (ZeRO) to optimize memory usage
+	* Allows for efficient training of large models by partitioning model parameters, gradients, and optimizer states across GPUs
+	* Reduces memory redundancy in data-parallel training, enabling larger models and batch sizes
+ 	* (Rasley et al., 2020)
+
+
+* Position Interpolation (PI):
+	* Enables LLMs to handle longer context windows without the need for training from scratch
+	* Works by interpolating between learned positional embeddings to extend to longer sequences
+	* Provides a foundation for LongLoRA to build upon for context extension
+ 	* (Chen et al., 2023)
+
+
+* FlashAttention2:
+	* Reorders the attention computation and leverages classical techniques (tiling, recomputation) to significantly speed it up and reduce memory usage
+	* Optimizes the memory access patterns in attention calculations
+	* Crucial for efficient processing of long sequences in both training and inference
+ 	* (Dao, 2023) 
+    
+
+* Gradient Checkpointing:
+	* A technique to reduce memory usage during backpropagation by recomputing intermediate activations instead of storing them
+	* Allows for training of deeper models or with larger batch sizes at the cost of increased computation time
+ 	* (Chen et al., 2023)
+
+
+
+These techniques work in synergy with LongLoRA's core contributions:
+
+DeepSpeed and gradient checkpointing enable efficient use of GPU memory, allowing for longer sequences to be processed.
+Position Interpolation provides a starting point for extending context length, which LongLoRA then fine-tunes efficiently.
+FlashAttention2 complements S2-Attn by optimizing attention computations, further improving efficiency for long sequences.
 
 ## Resource Links
-* GitHub repository
-* Related papers
-	 * [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685)
-	 * [LoRA GitHub Repository](https://github.com/microsoft/LoRA)
+* This repository is forked from the [LongLoRA orginal repository](https://github.com/dvlab-research/LongLoRA) 
+* Quick Links to related papers
+	* [LongLoRA](https://arxiv.org/abs/2309.12307)
+ 	* [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685)
+	* [LoRA GitHub Repository](https://github.com/microsoft/LoRA)
+ 	* [Positional Interpolation](https://arxiv.org/abs/2306.15595)
+  	* [FlashAttention2](https://arxiv.org/abs/2307.08691)
+  	* [DeepSpeed](https://dl.acm.org/doi/10.1145/3394486.3406703)
+  	* [Gradient Checkpointing](https://arxiv.org/abs/1604.06174)
+  	
 * Relevant blog posts and videos 
-	 * [How to code long-context LLM: LongLoRA explained on LLama 2 100K](https://www.youtube.com/watch?v=hf5N-SlqRmA)	
+	* [How to code long-context LLM: LongLoRA explained on LLama 2 100K](https://www.youtube.com/watch?v=hf5N-SlqRmA)
+ 	* [HuggingFace Collection of Long Context Articles](https://huggingface.co/collections/stereoplegic/long-context-65389c8f0e9beb3a415b3356)
+  	* [HuggingFace Discussion](https://huggingface.co/papers/2309.12307)
+  	* LongAlpaca and models with context extension via improved LoRA fine-tuning and full fine-tuning can be found in the original README below 
 
 
+# References
+
+Shouyuan Chen, Sherman Wong, Liangjian Chen, and Yuandong Tian. Extending context window of large language models via positional interpolation. CoRR, abs/2306.15595, 2023.
+
+Tri Dao. Flashattention-2: Faster attention with better parallelism and work partitioning. CoRR, abs/2307.08691, 2023.
+
+Jeff Rasley, Samyam Rajbhandari, Olatunji Ruwase, and Yuxiong He. Deepspeed: System optimizations enable training deep learning models with over 100 billion parameters. In KDD, pp.3505–3506. ACM, 2020.
+
+Tianqi Chen, Bing Xu, Chiyuan Zhang, and Carlos Guestrin. 2016. Training deep nets with sublinear memory cost. arXiv preprint arXiv:1604.06174 (April 2016).
 
 ## Original LongLoRA README:
 

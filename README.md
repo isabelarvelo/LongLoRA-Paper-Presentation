@@ -2,14 +2,71 @@
 
 ## Overview 
 
-**Definition:** The maximum amount of information it can take as input for a query
+**Definition:** The maximum amount of information an LLM can take as input for a query. LLMs are stateless (each incoming query is processed independently of other interactions), so their 'memory' is essentially their context window
 
-* Brief introduction to the problem of extending context length in LLMs
-* Challenges with current methods (computational cost, efficiency)
-* LongLoRA's approach: Efficient fine-tuning for long-context adaptation
+* Longer context allows LLMs to handle:
+	* Entire documents, including research papers or even books
+	* Large databases or codebases
+	* Multiple data sources simultaneously
+
+* Current Limitations
+	* Most LLMs are pre-trained with fixed context sizes which restrict LLMs in many applications such as:
+		* summarizing long documents
+  		* answering questions about extensive content
+   		* maintaining coherence in long conversations
+
++-------------------+----------------+
+| Model             | Context Length |
++-------------------+----------------+
+| Ministral 8B      | 128k           |
++-------------------+----------------+
+| GPT 3.5           | 4,096          |
++-------------------+----------------+
+| GPT 4             | 8,192          |
++-------------------+----------------+
+| Llama 1           | 2,048          |
++-------------------+----------------+
+| Llama 2           | 4,096          |
++-------------------+----------------+
+| Llama 3           | 8,192          |
++-------------------+----------------+
+| Claude Sonnet 3.5 | 200k           |
++-------------------+----------------+
+| gpt-4o            | 128k           |
++-------------------+----------------+
+| Gemma 7B          |  8,192         |
++-------------------+----------------+
+
+
+*For reference, the novel The Great Gatsby is 72k tokens 
+
+* Extending context length is not trivial 
+	* The primary challenge is the computational complexity of self-attention
+ 	* Self-attention has quadratic O(n^2) complexity with respect to sequence length
+   		*For instance, extending from 2,048 to 8,192 context length needs **16×** more computation in self-attention layers
+
+* Current Approaches and Their Limitations
+	* Full fine-tuning for longer contexts is extremely resource-intensive
+  		*[Position Interpolation](https://arxiv.org/abs/2306.15595) method used 32 A100 GPUs for 2k to 8k context extension, 128 A100 GPUs for longer context fine-tuning
+	* Empirical evidence has found that using LoRA for context extension has high perplexity and this still doesn't adress the computational complexity of the standard
+self-attention mechanism
+
+## LoRA Refresher  
+
+* LoRA(Low-Rank Adaptation) is a method for efficiently fine-tuning large AI models by reducing the number of parameters that need to be updated
+* **Key Idea**: Instead of updating the entire weight matrix during fine-tuning, LoRA constrains the weight updates to a low-rank space, significantly reducing computational cost.
+* **How it works**
+	* Weight updates are represented as a low-rank decomposition: ΔW = BA (B and A are low-rank matrices).
+	* This reduces the number of parameters to update from nk to r(n + k), where r << min(n, k).
+ * Enables the adaptation of large models to specific tasks without the heavy computational burden of traditional fine-tuning, which is particularly useful in low-data regimes or when computation resources are limited
+ * Good for AI teams' budgets and the environment
+
+
 
 
 ## Architecture Overview
+
+
 
 ### Key components of LongLoRA:
 

@@ -24,8 +24,14 @@
 
 * Computational Complexity:
 	* The primary challenge is the quadratic O(n^2) complexity of self-attention with respect to sequence length
-	* For instance, extending from 2,048 to 8,192 context length requires **16×** more computation in self-attention layers
+	* Extending from 2,048 to 8,192 context length requires **16×** more computation in self-attention layers
 
+<p align="center">
+  <img src="attention-small-n.jpeg" style="width: 30%; min-width: 50px; display: inline-block; margin-right: 10px;">
+  <img src="attention-large-n.jpeg" style="width: 30%; min-width: 50px; display: inline-block;">
+
+  <i>3Blue1Brown</i>
+</p>
 
 
 * Memory Requirements:
@@ -68,35 +74,29 @@
    		* Example: [Position Interpolation](https://arxiv.org/abs/2306.15595) method used 32 A100 GPUs for 2k to 8k context extension, 128 A100 GPUs for longer context fine-tuning
      	* Other methods like [Landmark Attention](https://arxiv.org/abs/2305.16300) are efficient, but prone to losing information 
 
-**Core Tradeoff**: Efficiency vs Full Information Retention 
+## Core Tradeoff: Efficiency vs Full Information Retention ##
+
+* Most existing solutions lean heavily towards one side of this tradeoff:
+	* Full fine-tuning approaches retain all information but are prohibitively expensive, often requiring hundreds of GPUs.
+	* Efficient methods like sparse attention or compression techniques sacrifice some degree of information retention or accessibility.
+
+* What if _we_ (collective of AI students and researchers without acces to swaths of VC funding or infinite time) want to
+	* 🔬 a model to understand and summarize entire research papers, including methods, results, and discussions?
+	* ⚖️ a model to analyze entire contracts, identifying key clauses and potential issues across hundreds of pages?
+	* 🩺 a model to analyze a patient's complete medical record, including years of notes, test results, and treatments, to assist in diagnosis and treatment planning?
+	* 💻 a model to understand entire codebases, providing more context-aware suggestions and bug detection across multiple files and functions?
+	* 📚 a model to analyze textbooks and generate tailored lesson plans, quizzes, and study guides that cover entire subjects or courses?
+	* 💰 a model to process entire quarterly reports, market analyses, and historical data to provide more comprehensive investment insights?
+
+* Is it possible to achieve a solution that offers the best of both worlds – efficient processing of long contexts without sacrificing the model's ability to access and use all the information?
 
 
-| Model             | Context Length |
-|:------------------|----------------|
-| Ministral 8B      | 128k           |
-| GPT 3.5           | 4,096          |
-| GPT 4             | 8,192          |
-| Llama 1           | 2,048          |
-| Llama 2           | 4,096          |
-| Llama 3           | 8,192          |
-| Claude Sonnet 3.5 | 200k           |
-| gpt-4o            | 128k           |
-| Gemma 7B          |  8,192         |
+Introducing ... **LongLoRA** ! LongLoRA aims to address this challenge by providing a method that:
 
-*For reference, the novel The Great Gatsby (208 pages) is 72k tokens*
+1. Significantly reduces computational requirements compared to full fine-tuning.
+2. Maintains the model's ability to access and process the full extended context during inference.
 
-## Solution 
-
-* Having general purpose long context models available for our everyday workflow is incredible, but what if _we_ (collective of AI students and researchers without acces to swaths of VC funding or infinite time) want to
-	* fine-tune a model to understand and summarize entire research papers, including methods, results, and discussions?
-	* fine-tune a model to analyze entire contracts, identifying key clauses and potential issues across hundreds of pages?
-	* fine-tune a model to analyze a patient's complete medical record, including years of notes, test results, and treatments, to assist in diagnosis and treatment planning?
-	* fine-tune a model to understand entire codebases, providing more context-aware suggestions and bug detection across multiple files and functions?
-	* fine-tune a model to analyze textbooks and generate tailored lesson plans, quizzes, and study guides that cover entire subjects or courses?
-	* fine-tune a model to process entire quarterly reports, market analyses, and historical data to provide more comprehensive investment insights?
-
-LongLoRA enables individuals and small teams to fine-tune models for specialized tasks that require processing and understanding large amounts of context-rich information, which was previously impractical or impossible due to computational constraints! It offers a balance between computational efficiency and maintaining the full capabilities of the original model architecture.
-
+Using this method, researchers were able to extend Llama2 7B to 100k context length and 70B model to 32k context length, on a **single** 8× A100 machine. 
 
 
 ## LoRA Refresher  
@@ -120,114 +120,193 @@ LongLoRA enables individuals and small teams to fine-tune models for specialized
 
 
 
-**How can we can efficently and effectively extend the context of pre-trained LLMs?**
-
-Introducing ... LongLoRA ! Using this method, researchers were able to extend Llama2 7B to 100k context length and 70B model to 32k context length, on a **single** 8× A100 machine.
-
-
 
 ## Architecture Overview
 
 ### Major Contributions of LongLoRA:
 
-a. Shifted Sparse Attention (S2-Attn)
-b. Improved LoRA (LoRA+)
+* Shifted Sparse Attention (S2-Attn)
+* Improved LoRA (LoRA+)
 
-## Key Questions 
+### Key Questions 
 
-### Q1: How does S2-Attn work and why is it effective?
+Q1: How does S2-Attn work and why is it effective?
 
-* Explanation of S2-Attn mechanism
-* Benefits over full attention during training
-* Consistency with full attention during inference
+Q2: What improvements does LongLoRA make to standard LoRA?
 
-### Q2: What improvements does LongLoRA make to standard LoRA?
-
-* Role of trainable embedding and normalization layers
-* Why these changes are crucial for long-context adaptation
 
 ### Key components of LongLoRA:
 
-a. Shifted Sparse Attention (S2-Attn)
+#### Shifted Sparse Attention (S2-Attn)
+
+* **Definition:**
+	* S2-Attn is an efficient approximation of full attention used during training.
+	* It closely mimics the behavior of full attention, just with reduced computation
 
 <p align="center" width="100%">
 <img src="imgs/Shift-short-attention2.png" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
 </p>
 
+* **How it works**:
+	* Splits the input sequence into several groups.
+   		* Original:  [A B C D E F G H]
+		* Unshifted: [A B C D] [E F G H]
+		* Shifted:    [C D E F] [G H A B]
+	* Applies attention separately within each group.
+ 		* Head 0: [A B C D]
+   		* Head 1: [E F G H]
+	* In half of the attention heads, shifts the group partition by half the group size.
+ 		* Head 2: [C D E F]
+   		* Head 3: [G H A B]
+     	* Each token to have access to both its local context (in the unshifted heads) and a broader context (in the shifted heads)
+      		* Token C has access to A, B, D (local context in Head 0) and E, F (broader context in Head 2).	 
 
-* **Explanation:**
+* **Implementation**:
+	* Can be implemented with just two lines of code during training.
+	* Does not require changes to the model architecture for inference.
+	* See [s2_attention_example.ipynb](https://github.com/isabelarvelo/LongLoRA/blob/main/s2_attention_example.ipynb) for a more in depth walk through 
 
-	* S2-Attn is an efficient approximation of full attention used during training.
-	* It allows for efficient computation while maintaining performance close to full attention.
-
-* **Key points**:
-  
-	* How it works:
-		* Splits the input sequence into several groups.
-		* Applies attention separately within each group.
-		* In half of the attention heads, shifts the group partition by half the group size.
-
-	* Implementation:
-		* Can be implemented with just two lines of code during training.
-		* Does not require changes to the model architecture for inference.
-  		* See [s2_attention_example.ipynb](https://github.com/isabelarvelo/LongLoRA/blob/main/s2_attention_example.ipynb) for a more in depth walk through 
  
 <p align="center" width="100%">
 <img src="shifted-sparse-attention-pseudocode.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
 </p>
 
-	* Benefits:
-		* Reduces computational cost significantly during training.
-		* Enables information flow between different groups through shifting.
-		* Achieves performance close to full attention fine-tuning.
 
-	* Comparison to other methods:
-  		* Unlike other efficient attention designs (e.g., dilated or sparse attention), S2-Attn has a smaller gap to standard attention.
-		* Models trained with S2-Attn can use full attention during inference.
-  			* The shifting mechanism in S2-Attn prevents the model from overfitting to specific attention patterns, which allows it to generalize better when using full attention during inference.
-		* Models fine-tuned with S2-Attn retain the original attention architecture during inference which allows the use of existing optimizations and infrastructure for inference.
+* **Benefits**:
+	* Reduces computational cost significantly during training.
+	* Enables information flow between different groups through shifting.
+	* Achieves performance close to full attention fine-tuning.
+
+* **Comparison to other attention patterns**:
+	* Unlike other efficient attention designs (e.g., dilated or sparse attention), S2-Attn has a smaller gap to standard attention.
+	* Models fine-tuned with S2-Attn retain the original attention architecture during inference which allows the use of existing optimizations and infrastructure for inference
+		* The shifting mechanism in S2-Attn prevents the model from overfitting to specific attention patterns, which allows it to generalize better when using full attention during inference.
+ 	* <p align="center" width="100%"><img src="attention-pattern-comparison.jpeg" style="width: 70%; min-width: 300px; display: block; margin: auto;"></p>
+  
+	* When testing with the same attention pattern used in training (first row), S2-Attn performs well (8.64 perplexity)
+	* When testing with full attention (second row), S2-Attn still performs well (8.12 perplexity).
+	* Other attention patterns like dilated, block sparse, and stride sparse attention show larger discrepancies between training and full-attention testing, or perform poorly overall.
+
+✅ Significantly reduces computational requirements compared to full fine-tuning
+
+🤏🏼 Maintains the model's ability to access and process the full extended context during inference 
 
 
-      [Insert table here]
 
-* When testing with the same attention pattern used in training (first row), S2-Attn performs well (8.64 perplexity).
-* When testing with full attention (second row), S2-Attn still performs well (8.12 perplexity).
-Other attention patterns like dilated, block sparse, and stride sparse attention show larger discrepancies between training and full-attention testing, or perform poorly overall.
-
-
-b. Improved LoRA (LoRA+)
+#### Improved LoRA (LoRA+)
 
 <p align="center" width="100%">
 <img src="long_lora_plus.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
 </p>
 
-**Explanation:**
+**Key Innovation:**
+* LoRA+ enhances the standard LoRA method by making embedding and normalization layers trainable, in addition to the attention layers typically adapted in LoRA.
+* These layers occupy a small proportion of total parameters but are crucial for long-context learning.
 
-	* Makes embedding and normalization layers trainable.
-	* These layers occupy a small proportion of total parameters but are crucial for long-context learning.
-
-**Importance of trainable layers:**
-
-	* Embedding: <2% of parameters in Llama2 7B
-	* Normalization: ≤0.004% of parameters
-	* Empirical results show a large performance gap between LoRA and full fine-tuning for long contexts, even with larger LoRA ranks
+**Parameter Efficiency:**
+* Embedding: <2% of parameters in Llama2 7B
+* Normalization: ≤0.004% of parameters
 
 **Performance:**
-	* Making embedding and normalization trainable closes this gap between standard LoRA and full fine-tuning for long contexts.
-	* Achieves comparable results to full fine-tuning with much lower computational cost.
+* Making embedding and normalization trainable significantlt closes this gap between standard LoRA and full fine-tuning for long contexts.
+* Achieves comparable results to full fine-tuning with much lower computational cost.
+
+<p align="center" width="100%">
+<img src="long_lora_plus_layers.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+</p>
+
+* Standard LoRA, even with increasing rank, fails to close the performance gap with full fine-tuning for long-context adaptation (perplexity of 11.44-11.98 vs 8.08 for full fine-tuning).
+* Making normalization and embedding layers trainable is crucial for effective long-context adaptation, with LoRA + trainable normalization and embedding layers achieving a perplexity of 8.12, nearly matching full fine-tuning's 8.08.
+* The combination of trainable normalization and embedding layers in LoRA provides a significant performance boost compared to using either alone
 
 
-## Pseudocode description (based on the formal algorithms paper style)
+### Pseudocode description
 
-Comparison with previous models/approaches
+<p align="center" width="100%">
+<img src="long_lora_pseudocode.drawio.png" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+</p>
+
+
+
+Bringing it all together, we get LongLoRA
+
+<p align="center" width="100%">
+<img src="long_lora_plus.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+</p>
+
+✅ Significantly reduces computational requirements compared to full fine-tuning
+
+✅ Maintains the model's ability to access and process the full extended context during inference 
 
 
 
 ## Impacts
 
-* Significance for efficient LLM adaptation
-* Potential applications and use cases
-* Future implications for long-context understanding in AI
+### Significance for efficient LLM adaptation
+
+* Democratization of LLM fine-tuning
+* Cost-effective model improvement
+* Environmental benefits
+* Bridging the gap between research and application
+
+### Some Potential applications and use cases
+
+* Document analysis and summarization (academic research, legal analysis, content curation)
+* Enhanced question-answering systems
+* Code understanding and generation
+* Long-form content generation
+* Improved language translation
+
+### Future implications for long-context understanding in AI
+
+* Increases ability for AI to complete certain tasks without as much intervention or guidance 
+* Cross-modal long-context understanding
+* Improved few-shot and zero-shot learning:
+* Ethical considerations and bias mitigation
+
+
+## Code Demo 
+
+This [demo](https://github.com/isabelarvelo/LongLoRA/blob/main/LongLoRA_finetune_demo.ipynb) illustrates how LongLoRA enables efficient, resource-friendly fine-tuning of large language models with extended context lengths, making advanced NLP capabilities more accessible and adaptable to specific domains like medical question-answering.
+
+* Model and Data Setup:
+	* The demo uses a pre-trained 1.4 billion parameter model (EleutherAI/pythia-1.4b-deduped).
+ 	* It fine-tunes this model on a medical question-answering dataset (lavita/medical-qa-datasets) containing 239k examples.
+
+* Efficient Fine-tuning:
+	* LongLoRA is applied, enabling fine-tuning of only specific parts of the model (embeddings and normalization layers) along with low-rank adaptation.
+	* The model is quantized to 4-bit precision, significantly reducing memory requirements.
+	* These techniques make it possible to fine-tune a large model on a single GPU (NVIDIA A100) through Google Colab. 
+
+* Extended Context Length:
+	* The model's context length is extended from its original size to 32,768 tokens, a significant increase that allows for processing much longer inputs.
+
+* Fast Training:
+	* After data loading and tokenization, the fine-tuning process only takes only about 31 minutes on a single A100 GPU.
+	* This is remarkably fast for fine-tuning a 1.4B parameter model on nearly 240,000 examples.
+
+* Model Merging and Deployment:
+	* After fine-tuning, the adapter weights are merged back into the base model.
+	* The resulting model is then pushed to the Hugging Face Hub, making it easily accessible for future use.
+
+
+
+## Context Length of Prominent Models 
+
+| Model             | Context Length |
+|:------------------|----------------|
+| Ministral 8B      | 128k           |
+| GPT 3.5           | 4,096          |
+| GPT 4             | 8,192          |
+| Llama 1           | 2,048          |
+| Llama 2           | 4,096          |
+| Llama 3           | 8,192          |
+| Claude Sonnet 3.5 | 200k           |
+| gpt-4o            | 128k           |
+| Gemma 7B          | 8,192          |
+
+*For reference, the novel The Great Gatsby (208 pages) is 72k tokens*
+
 
 ## Other methodology worth mentioning 
 While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverages several other important techniques that are crucial for efficient long-context fine-tuning:
@@ -238,13 +317,11 @@ While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverage
 	* Reduces memory redundancy in data-parallel training, enabling larger models and batch sizes
  	* (Rasley et al., 2020)
 
-
 * Position Interpolation (PI):
 	* Enables LLMs to handle longer context windows without the need for training from scratch
 	* Works by interpolating between learned positional embeddings to extend to longer sequences
 	* Provides a foundation for LongLoRA to build upon for context extension
  	* (Chen et al., 2023)
-
 
 * FlashAttention2:
 	* Reorders the attention computation and leverages classical techniques (tiling, recomputation) to significantly speed it up and reduce memory usage
@@ -252,19 +329,11 @@ While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverage
 	* Crucial for efficient processing of long sequences in both training and inference
  	* (Dao, 2023) 
     
-
 * Gradient Checkpointing:
 	* A technique to reduce memory usage during backpropagation by recomputing intermediate activations instead of storing them
 	* Allows for training of deeper models or with larger batch sizes at the cost of increased computation time
  	* (Chen et al., 2023)
 
-
-
-These techniques work in synergy with LongLoRA's core contributions:
-
-DeepSpeed and gradient checkpointing enable efficient use of GPU memory, allowing for longer sequences to be processed.
-Position Interpolation provides a starting point for extending context length, which LongLoRA then fine-tunes efficiently.
-FlashAttention2 complements S2-Attn by optimizing attention computations, further improving efficiency for long sequences.
 
 ## Resource Links
 * This repository is forked from the [LongLoRA orginal repository](https://github.com/dvlab-research/LongLoRA) 
@@ -281,7 +350,8 @@ FlashAttention2 complements S2-Attn by optimizing attention computations, furthe
 	* [How to code long-context LLM: LongLoRA explained on LLama 2 100K](https://www.youtube.com/watch?v=hf5N-SlqRmA)
  	* [HuggingFace Collection of Long Context Articles](https://huggingface.co/collections/stereoplegic/long-context-65389c8f0e9beb3a415b3356)
   	* [HuggingFace Discussion](https://huggingface.co/papers/2309.12307)
-  	* LongAlpaca and models with context extension via improved LoRA fine-tuning and full fine-tuning can be found in the original README below 
+  	* LongAlpaca and models with context extension via improved LoRA fine-tuning and full fine-tuning can be found in the original README below
+  	* [3Blue1Brown](https://www.youtube.com/watch?v=eMlx5fFNoYc&t=779s) for explanation of Attention 
 
 
 # References

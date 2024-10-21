@@ -116,7 +116,7 @@ Using this method, researchers were able to extend Llama2 7B to 100k context len
 
 * Empirical evidence has found that using LoRA for context extension is neither _effective_ or _efficient_
 	* has high perplexity (less certainty in predictions)
-  	* standard self-attention mechanism still yields dramatic increases in computational complexity as context length extends 
+  	* standard self-attention mechanism (Vaswani et al., 2017) still yields dramatic increases in computational complexity as context length extends 
 
 
 
@@ -192,12 +192,14 @@ Q2: What improvements does LongLoRA make to standard LoRA?
 🤏🏼 Maintains the model's ability to access and process the full extended context during inference 
 
 
+</br>
+</br>
+
+
 
 #### Improved LoRA (LoRA+)
 
-<p align="center" width="100%">
-<img src="long_lora_plus.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
-</p>
+Remember that computational efficiency was not the only thing holding LoRA back, researchers also observed that standard LoRA had high perplexity (less certainty in predictions) when used for context extension, even with larger rank sizes. 
 
 **Key Innovation:**
 * LoRA+ enhances the standard LoRA method by making embedding and normalization layers trainable, in addition to the attention layers typically adapted in LoRA.
@@ -289,23 +291,26 @@ This [demo](https://github.com/isabelarvelo/LongLoRA/blob/main/LongLoRA_finetune
 	* After fine-tuning, the adapter weights are merged back into the base model.
 	* The resulting model is then pushed to the Hugging Face Hub, making it easily accessible for future use.
 
+## Additional Contributions 
 
+In addition to the methodological advancements of LongLoRA, the authors have made several practical contributions that benefit the AI research community:
+* The authors have released several LLM variants with extended context lengths including:
+	* Llama2 7B extended to 100k context length
+	* Llama2 13B extended to 65,536 context length
+	* Llama2 70B extended to 32,768 context length
+ 	* _All of the models trained and released for this work can be found linked below in the Original ReadME_
 
-## Context Length of Prominent Models 
+* LongAlpaca Dataset
+	* The authors introduce a new dataset called LongAlpaca, specifically designed for long-context instruction following:
+	* Composition: 9,000 long-context question-answer pairs and 3,000 short QAs sampled from the original Alpaca data
+	* Content: Includes materials like technical papers, science fiction, and other books
+	* Question types: Summarization, relationships, characters, and other context-specific queries
 
-| Model             | Context Length |
-|:------------------|----------------|
-| Ministral 8B      | 128k           |
-| GPT 3.5           | 4,096          |
-| GPT 4             | 8,192          |
-| Llama 1           | 2,048          |
-| Llama 2           | 4,096          |
-| Llama 3           | 8,192          |
-| Claude Sonnet 3.5 | 200k           |
-| gpt-4o            | 128k           |
-| Gemma 7B          | 8,192          |
-
-*For reference, the novel The Great Gatsby (208 pages) is 72k tokens*
+* Benchmarking Results
+	* The paper presents extensive benchmarking results:
+		* Comparisons with existing long-context models on various tasks
+		* Performance evaluations on standard benchmarks like PG19 and proof-pile datasets
+		* These results serve as baselines for future research in long-context language modeling
 
 
 ## Other methodology worth mentioning 
@@ -335,6 +340,22 @@ While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverage
  	* (Chen et al., 2023)
 
 
+## Context Length of Prominent Models 
+
+| Model             | Context Length |
+|:------------------|----------------|
+| Ministral 8B      | 128k           |
+| GPT 3.5           | 4,096          |
+| GPT 4             | 8,192          |
+| Llama 1           | 2,048          |
+| Llama 2           | 4,096          |
+| Llama 3           | 8,192          |
+| Claude Sonnet 3.5 | 200k           |
+| gpt-4o            | 128k           |
+| Gemma 7B          | 8,192          |
+*For reference, the novel The Great Gatsby (208 pages) is 72k tokens*
+
+
 ## Resource Links
 * This repository is forked from the [LongLoRA orginal repository](https://github.com/dvlab-research/LongLoRA) 
 * Quick Links to related papers
@@ -356,13 +377,32 @@ While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverage
 
 # References
 
-Shouyuan Chen, Sherman Wong, Liangjian Chen, and Yuandong Tian. Extending context window of large language models via positional interpolation. CoRR, abs/2306.15595, 2023.
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. Attention is
+	all you need. In NeurIPS, pp. 5998–6008, 2017.
+
+Shouyuan Chen, Sherman Wong, Liangjian Chen, and Yuandong Tian. Extending context window of large language models via positional 
+	interpolation. CoRR, abs/2306.15595, 2023.
+
+Manzil Zaheer, Guru Guruganesh, Kumar Avinava Dubey, Joshua Ainslie, Chris Alberti, Santiago Ontan˜on, Philip Pham, Anirudh Ravula, Qifan 
+	Wang, Li Yang, and Amr Ahmed. Big bird: Transformers for longer sequences. In NeurIPS, 2020.
 
 Tri Dao. Flashattention-2: Faster attention with better parallelism and work partitioning. CoRR, abs/2307.08691, 2023.
 
-Jeff Rasley, Samyam Rajbhandari, Olatunji Ruwase, and Yuxiong He. Deepspeed: System optimizations enable training deep learning models with over 100 billion parameters. In KDD, pp.3505–3506. ACM, 2020.
+Jianlin Su, Yu Lu, Shengfeng Pan, Bo Wen, and Yunfeng Liu. Roformer: Enhanced transformer with rotary position embedding. CoRR, 
+	abs/2104.09864, 2021.
 
-Tianqi Chen, Bing Xu, Chiyuan Zhang, and Carlos Guestrin. 2016. Training deep nets with sublinear memory cost. arXiv preprint arXiv:1604.06174 (April 2016).
+Jeff Rasley, Samyam Rajbhandari, Olatunji Ruwase, and Yuxiong He. Deepspeed: System optimizations enable training deep learning models with 
+	over 100 billion parameters. In KDD, pp.3505–3506. ACM, 2020.
+
+Tianqi Chen, Bing Xu, Chiyuan Zhang, and Carlos Guestrin. 2016. Training deep nets with sublinear memory cost. arXiv preprint 
+	arXiv:1604.06174 (April 2016).
+
+Sourab Mangrulkar, Sylvain Gugger, Lysandre Debut, Younes Belkada, and Sayak Paul. Peft: Stat eof-the-art parameter-efficient fine-tuning 
+	methods. https://github.com/huggingface/peft, 2022.
+
+
+
+
 
 ## Original LongLoRA README:
 

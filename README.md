@@ -1,5 +1,25 @@
 # DS 5690: LongLoRA Paper Presentation
 
+## Rubric Deliverables
+
+| **Deliverable**          | **Where You Can Find It**                                                  |
+|--------------------------|-----------------------------------------------------------------------------|
+| Repository                | You are here  📍                                                           |
+| Presentation materials    | [README.md](README.md)                                                     |
+| Overview                  | Motivation & Problem Statement sections           |
+| Question 1                | Architecture Overview > S2-Attn section            |
+| Question 2                | Architecture Overview > LoRA+ section              |
+| Architecture overview     | Architecture Overview sectio                      |
+| Critical Analysis         | Critical Analysis section                          |
+| Impacts                   | Impacts section                                    |
+| Resource links            | Resource Links section                             |
+| Code demonstration        | [LongLoRA_finetune_demo.ipynb](LongLoRA_finetune_demo.ipynb), [s2_attention_example.ipynb](s2_attention_example.ipynb) |
+| Citation for paper        | References section                             |
+
+
+<br/>
+<br/>
+
 ## Motivation 
 
 **Context Length:** The maximum amount of information an LLM can take as input for a query. LLMs are stateless (each incoming query is processed independently of other interactions), so their 'memory' is essentially their context window
@@ -19,6 +39,9 @@
 		* Analyzing large datasets or codebases in their entirety
 		* Performing tasks that require understanding of broader context or long-term dependencies
  
+<br/>
+<br/>
+
 
 ## Problem Statement : Extending context length is not trivial 
 
@@ -40,6 +63,9 @@
 * Overfitting and Generalization:
 	* Models may overfit to specific long-context patterns seen during training
 	* Ensuring generalization to various types of long-context tasks is crucial
+
+<br/>
+<br/>
 
 ## Current Approaches 
 
@@ -74,6 +100,9 @@
    		* Example: [Position Interpolation](https://arxiv.org/abs/2306.15595) method used 32 A100 GPUs for 2k to 8k context extension, 128 A100 GPUs for longer context fine-tuning
      	* Other methods like [Landmark Attention](https://arxiv.org/abs/2305.16300) are efficient, but prone to losing information 
 
+<br/>
+<br/>
+
 ## Core Tradeoff: Efficiency vs Full Information Retention ##
 
 * Most existing solutions lean heavily towards one side of this tradeoff:
@@ -98,6 +127,8 @@ Introducing ... **LongLoRA** ! LongLoRA aims to address this challenge by provid
 
 Using this method, researchers were able to extend Llama2 7B to 100k context length and 70B model to 32k context length, on a **single** 8× A100 machine. 
 
+<br/>
+<br/>
 
 ## LoRA Refresher  
 
@@ -119,7 +150,8 @@ Using this method, researchers were able to extend Llama2 7B to 100k context len
   	* standard self-attention mechanism (Vaswani et al., 2017) still yields dramatic increases in computational complexity as context length extends 
 
 
-
+<br/>
+<br/>
 
 ## Architecture Overview
 
@@ -240,32 +272,45 @@ Bringing it all together, we get LongLoRA
 
 ✅ Maintains the model's ability to access and process the full extended context during inference 
 
-
+<br/>
+<br/>
 
 ## Impacts
 
-### Significance for efficient LLM adaptation
+### Significance for efficient LLM adaptation 
+* Democratization of LLM fine-tuning through reduced compute requirements and clearer evaluation frameworks
+* Cost-effective model improvement by identifying which capabilities actually matter for specific applications
+* Environmental benefits from targeted optimization rather than training larger models
+* Bridging research-application gap by focusing on real-world tasks over synthetic benchmarks
 
-* Democratization of LLM fine-tuning
-* Cost-effective model improvement
-* Environmental benefits
-* Bridging the gap between research and application
-
-### Some Potential applications and use cases
-
-* Document analysis and summarization (academic research, legal analysis, content curation)
+### Potential applications and use cases
+* Document analysis and summarization
+  * Legal contract review across multiple documents
+  * Scientific literature synthesis spanning hundreds of papers
+  * Corporate document compliance checking
 * Enhanced question-answering systems
-* Code understanding and generation
+  * Medical diagnosis support using full patient histories
+  * Technical support systems drawing from entire product documentation
+  * Academic research assistants analyzing full research papers
 * Long-form content generation
-* Improved language translation
+  * Automated report writing incorporating multiple data sources
+  * Book-length content creation with consistent narrative
+  * Personalized educational content adapting to student context
 
 ### Future implications for long-context understanding in AI
-
-* Increases ability for AI to complete certain tasks without as much intervention or guidance 
+* Autonomous task completion with reduced human intervention
+  * Self-guided research and analysis
+  * End-to-end project planning and execution
 * Cross-modal long-context understanding
-* Improved few-shot and zero-shot learning:
-* Ethical considerations and bias mitigation
+  * Integration of text, code, and structured data
+  * Analysis of multi-format documents (PDFs, spreadsheets, presentations)
+* Improved few-shot learning through better context utilization
+  * Faster adaptation to new domains
+  * More efficient transfer learning
 
+
+<br/>
+<br/>
 
 ## Code Demo 
 
@@ -312,6 +357,31 @@ In addition to the methodological advancements of LongLoRA, the authors have mad
 		* Performance evaluations on standard benchmarks like PG19 and proof-pile datasets
 		* These results serve as baselines for future research in long-context language modeling
 
+<br/>
+<br/>
+
+## Critical Analysis 
+
+* Over-reliance on Perplexity
+	* Perplexity primarily measures prediction uncertainty, but does not account for other factors such as coherence, fluency, or semantic understanding and may not directly translate to task performance
+ 	* Models can achieve low perplexity while generating repetitive or uninteresting (low diversity) text
+
+* Limited Real-World Task Evaluation
+	* Paper primarily focuses on synthetic tasks (e.g., passkey retrieval) that are not strong predictors of real-world performance
+	* Unclear how synthetic tasks actually correlate with downstream capabilities
+	* Missing evaluation on task specific metrics like:
+		* Document summarization(ROUGE)
+		* Named Entity Recognition (seqeval)
+		* Quality of Text (MAUVE) 
+
+* Open Questions
+	* Do our current metrics suffice for long context models or is there a better way to evaluate complex capabilities like cross-document reasoning and information integration?
+ 	* [How to Evaluate Long-Context Language Models
+Effectively and Thoroughly(HELMET)](https://arxiv.org/pdf/2410.02694) (published over Fall Break)
+        * With the LongAlpaca dataset, better metrics can be developef to test frontier long-context abilities
+
+<br/>
+<br/>
 
 ## Other methodology worth mentioning 
 While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverages several other important techniques that are crucial for efficient long-context fine-tuning:
@@ -339,8 +409,10 @@ While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverage
 	* Allows for training of deeper models or with larger batch sizes at the cost of increased computation time
  	* (Chen et al., 2023)
 
+<br/>
+<br/>
 
-## Context Length of Prominent Models 
+## FYI: Context Length of Prominent Models 
 
 | Model             | Context Length |
 |:------------------|----------------|
@@ -355,6 +427,8 @@ While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverage
 | Gemma 7B          | 8,192          |
 *For reference, the novel The Great Gatsby (208 pages) is 72k tokens*
 
+<br/>
+<br/>
 
 ## Resource Links
 * This repository is forked from the [LongLoRA orginal repository](https://github.com/dvlab-research/LongLoRA) 
@@ -377,6 +451,8 @@ While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverage
   	* [Easily Train a Specialized LLM: PEFT, LoRA, QLoRA, LLaMA-Adapter, and More](https://cameronrwolfe.substack.com/p/easily-train-a-specialized-llm-peft)
   	* [3Blue1Brown](https://www.youtube.com/watch?v=eMlx5fFNoYc&t=779s) for explanation of Attention 
 
+<br/>
+<br/>
 
 # References
 
@@ -404,13 +480,18 @@ Sourab Mangrulkar, Sylvain Gugger, Lysandre Debut, Younes Belkada, and Sayak Pau
 	methods. https://github.com/huggingface/peft, 2022.
 
 
-
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
 
 
 ## Original LongLoRA README:
 
-</p>
-</p>
+<br/>
+<br/>
 
 <p align="center" width="100%">
 <img src="imgs/LongAlpaca.png" alt="Stanford-Alpaca" style="width: 100%; min-width: 300px; display: block; margin: auto;">

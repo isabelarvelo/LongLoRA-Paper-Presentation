@@ -369,9 +369,12 @@ While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverage
   	
 * Relevant blog posts and videos 
 	* [How to code long-context LLM: LongLoRA explained on LLama 2 100K](https://www.youtube.com/watch?v=hf5N-SlqRmA)
+ 	* [The Remedy for Fine-Tuning LLMs in Long Context – LongLoRA](https://hkaift.com/the-remedy-for-fine-tuning-llms-in-long-context-longlora/) 
  	* [HuggingFace Collection of Long Context Articles](https://huggingface.co/collections/stereoplegic/long-context-65389c8f0e9beb3a415b3356)
-  	* [HuggingFace Discussion](https://huggingface.co/papers/2309.12307)
+  	* [HuggingFace Discussion of LongLoRA](https://huggingface.co/papers/2309.12307)
   	* LongAlpaca and models with context extension via improved LoRA fine-tuning and full fine-tuning can be found in the original README below
+  	* [100k context length Llama 7B....How?](https://jacksoncakes.com/2023/10/05/longlora-efficient-fine-tuning-of-long-context-large-language-models/)
+  	* [Easily Train a Specialized LLM: PEFT, LoRA, QLoRA, LLaMA-Adapter, and More](https://cameronrwolfe.substack.com/p/easily-train-a-specialized-llm-peft)
   	* [3Blue1Brown](https://www.youtube.com/watch?v=eMlx5fFNoYc&t=779s) for explanation of Attention 
 
 

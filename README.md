@@ -384,7 +384,7 @@ In addition to the methodological advancements of LongLoRA, the authors have mad
 	* Do our current metrics suffice for long context models or is there a better way to evaluate complex capabilities like cross-document reasoning and information integration?
  	* [How to Evaluate Long-Context Language Models
 Effectively and Thoroughly(HELMET)](https://arxiv.org/pdf/2410.02694) (published over Fall Break)
-        * With the LongAlpaca dataset, better metrics can be developef to test frontier long-context abilities
+        * With the LongAlpaca dataset, better metrics can be developed to test frontier long-context abilities
 
 <br/>
 <br/>

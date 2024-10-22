@@ -22,7 +22,7 @@
 
 ## Motivation 
 
-**Context Length:** The maximum amount of information an LLM can take as input for a query. LLMs are stateless (each incoming query is processed independently of other interactions), so their 'memory' is essentially their context window
+**Context Length:** Maximum input tokens an LLM can process in a single query, acting as the model's effective "memory window"
 
 * Longer context allows LLMs to handle:
 	* Entire documents, including research papers or even books
@@ -46,7 +46,7 @@
 ## Problem Statement : Extending context length is not trivial 
 
 * Computational Complexity:
-	* The primary challenge is the quadratic O(n^2) complexity of self-attention with respect to sequence length
+	* $O(n^2)$ scaling with sequence length
 	* Extending from 2,048 to 8,192 context length requires **16×** more computation in self-attention layers
 
 <p align="center">
@@ -57,10 +57,10 @@
 </p>
 
 
-* Memory Requirements:
-	* Longer sequences require more GPU memory to store attention matrices and intermediate activations
+* Memory Usage:
+	* Storage of attention matrices
 	* This often exceeds the capacity of available hardware, especially for larger models
-* Overfitting and Generalization:
+* Model Quality:
 	* Models may overfit to specific long-context patterns seen during training
 	* Ensuring generalization to various types of long-context tasks is crucial
 
@@ -77,19 +77,18 @@
 
 	* Recurrent Memory Mechanisms:
 		* Approach: Incorporating explicit memory structures to extend effective context
-		* Examples: Transformer-XL, Compressive Transformers
+		* Examples: [Transformer-XL](https://huggingface.co/docs/transformers/en/model_doc/transfo-xl), [Compressive Transformers](https://arxiv.org/abs/1911.05507)
 		* Limitation: Compressions have a large gap to full attention, making it infeasible to fine-tune pre-trained LLMs
 
 	* Retrieval-Augmented Models:
-
 		* Approach: Combining LLMs with external retrieval systems to access relevant information
-		* Examples: REALM, RAG (Retrieval-Augmented Generation)
+		* Examples: [REALM](https://huggingface.co/docs/transformers/en/model_doc/realm), RAG (Retrieval-Augmented Generation)
 		* Limitation: Relies on effective retrieval systems and may struggle with seamless integration of retrieved information
 
 	* Context Compression Techniques:
 
 		* Approach: Dynamically compressing or summarizing past context
-		* Examples: LongNet, Memorizing Transformers
+		* Examples: [LongNet](https://arxiv.org/abs/2307.02486), [Memorizing Transformers](https://arxiv.org/abs/2203.08913)
 		* Limitation: May lose some fine-grained details in the compression process
 
 
@@ -120,7 +119,7 @@
 * Is it possible to achieve a solution that offers the best of both worlds – efficient processing of long contexts without sacrificing the model's ability to access and use all the information?
 
 
-Introducing ... **LongLoRA** ! LongLoRA aims to address this challenge by providing a method that:
+Introducing ... **[LongLoRA](https://arxiv.org/abs/2309.12307)** ! LongLoRA aims to address this challenge by providing a method that:
 
 1. Significantly reduces computational requirements compared to full fine-tuning.
 2. Maintains the model's ability to access and process the full extended context during inference.
@@ -409,26 +408,6 @@ While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverage
 	* Allows for training of deeper models or with larger batch sizes at the cost of increased computation time
  	* (Chen et al., 2023)
 
-<br/>
-<br/>
-
-## FYI: Context Length of Prominent Models 
-
-| Model             | Context Length |
-|:------------------|----------------|
-| Ministral 8B      | 128k           |
-| GPT 3.5           | 4,096          |
-| GPT 4             | 8,192          |
-| Llama 1           | 2,048          |
-| Llama 2           | 4,096          |
-| Llama 3           | 8,192          |
-| Claude Sonnet 3.5 | 200k           |
-| gpt-4o            | 128k           |
-| Gemma 7B          | 8,192          |
-*For reference, the novel The Great Gatsby (208 pages) is 72k tokens*
-
-<br/>
-<br/>
 
 ## Resource Links
 * This repository is forked from the [LongLoRA orginal repository](https://github.com/dvlab-research/LongLoRA) 

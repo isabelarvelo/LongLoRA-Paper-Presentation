@@ -24,21 +24,25 @@
 
 **Context Length:** Maximum input tokens an LLM can process in a single query, acting as the model's effective "memory window"
 
-* Longer context allows LLMs to handle:
-	* Entire documents, including research papers or even books
-	* Large databases or codebases
-	* Multiple data sources simultaneously
- 	* Extended conversations or multi-turn dialogues
- 	* Complex tasks requiring integration of information from various parts of a long input
+<p align="center" width="100%">
+<img src="context-length-viz.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+</p>
 
-* Current Limitations
-	* Most LLMs are pre-trained with fixed context sizes which restrict LLMs in many applications such as:
-		* Summarizing long documents
-		* Answering questions about extensive content
-		* Maintaining coherence in long conversations
-		* Analyzing large datasets or codebases in their entirety
-		* Performing tasks that require understanding of broader context or long-term dependencies
- 
+* Document Processing
+	* Research papers
+	* Books
+	* Technical documentation
+
+* Data Integration
+	* Multiple databases
+	* Diverse codebases
+	* Cross-source analysis
+
+* Extended Interaction
+	* Multi-turn dialogues
+	* Complex conversations
+	* Contextual responses
+
 <br/>
 <br/>
 
@@ -161,9 +165,9 @@ Using this method, researchers were able to extend Llama2 7B to 100k context len
 
 ### Key Questions 
 
-Q1: How does S2-Attn work and why is it effective?
+* How does S2-Attn work and why is it effective?
 
-Q2: What improvements does LongLoRA make to standard LoRA?
+* What improvements does LongLoRA make to standard LoRA?
 
 
 ### Key components of LongLoRA:
@@ -333,7 +337,10 @@ This [demo](https://github.com/isabelarvelo/LongLoRA/blob/main/LongLoRA_finetune
 
 * Model Merging and Deployment:
 	* After fine-tuning, the adapter weights are merged back into the base model.
-	* The resulting model is then pushed to the Hugging Face Hub, making it easily accessible for future use.
+	* The resulting model is then pushed to the Hugging Face Hub 🤗, making it easily accessible for future use.
+
+<br/>
+<br/>
 
 ## Additional Contributions 
 
@@ -344,7 +351,7 @@ In addition to the methodological advancements of LongLoRA, the authors have mad
 	* Llama2 70B extended to 32,768 context length
  	* _All of the models trained and released for this work can be found linked below in the Original ReadME_
 
-* LongAlpaca Dataset
+* LongAlpaca Dataset 🦙
 	* The authors introduce a new dataset called LongAlpaca, specifically designed for long-context instruction following:
 	* Composition: 9,000 long-context question-answer pairs and 3,000 short QAs sampled from the original Alpaca data
 	* Content: Includes materials like technical papers, science fiction, and other books

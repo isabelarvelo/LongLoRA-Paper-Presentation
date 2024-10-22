@@ -353,9 +353,9 @@ In addition to the methodological advancements of LongLoRA, the authors have mad
 
 * LongAlpaca Dataset 🦙
 	* The authors introduce a new dataset called LongAlpaca, specifically designed for long-context instruction following:
-	* Composition: 9,000 long-context question-answer pairs and 3,000 short QAs sampled from the original Alpaca data
-	* Content: Includes materials like technical papers, science fiction, and other books
-	* Question types: Summarization, relationships, characters, and other context-specific queries
+		* 9,000 long-context question-answer pairs and 3,000 short QAs sampled from the original Alpaca data
+		* Includes materials like technical papers, science fiction, and other books
+		* Question types: Summarization, relationships, characters, and other context-specific queries
 
 * Benchmarking Results
 	* The paper presents extensive benchmarking results:

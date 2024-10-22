@@ -9,7 +9,7 @@
 | Overview                  | Motivation & Problem Statement sections           |
 | Question 1                | Architecture Overview > S2-Attn section            |
 | Question 2                | Architecture Overview > LoRA+ section              |
-| Architecture overview     | Architecture Overview sectio                      |
+| Architecture overview     | Architecture Overview section                      |
 | Critical Analysis         | Critical Analysis section                          |
 | Impacts                   | Impacts section                                    |
 | Resource links            | Resource Links section                             |
@@ -125,8 +125,8 @@
 
 Introducing ... **[LongLoRA](https://arxiv.org/abs/2309.12307)** ! LongLoRA aims to address this challenge by providing a method that:
 
-1. Significantly reduces computational requirements compared to full fine-tuning.
-2. Maintains the model's ability to access and process the full extended context during inference.
+1. Significantly reduces computational requirements compared to full fine-tuning
+2. Maintains the model's ability to access and process the full extended context during inference
 
 Using this method, researchers were able to extend Llama2 7B to 100k context length and 70B model to 32k context length, on a **single** 8× A100 machine. 
 
@@ -138,8 +138,8 @@ Using this method, researchers were able to extend Llama2 7B to 100k context len
 * LoRA(Low-Rank Adaptation) is a method for efficiently fine-tuning large AI models by reducing the number of parameters that need to be updated
 * **Key Idea**: Instead of updating the entire weight matrix during fine-tuning, LoRA constrains the weight updates to a low-rank space, significantly reducing computational cost.
 * **How it works**
-	* Weight updates are represented as a low-rank decomposition: ΔW = BA (B and A are low-rank matrices).
-	* This reduces the number of parameters to update from nk to r(n + k), where r << min(n, k).
+	* Weight updates are represented as a low-rank decomposition: ΔW = BA (B and A are low-rank matrices)
+	* This reduces the number of parameters to update from nk to r(n + k), where r << min(n, k)
  * Enables the adaptation of large models to specific tasks without the heavy computational burden of traditional fine-tuning, which is particularly useful in low-data regimes or when computation resources are limited
  * Good for AI teams' budgets and the environment
 
@@ -183,22 +183,22 @@ Using this method, researchers were able to extend Llama2 7B to 100k context len
 </p>
 
 * **How it works**:
-	* Splits the input sequence into several groups.
+	* Splits the input sequence into several groups
    		* Original:  [A B C D E F G H]
 		* Unshifted: [A B C D] [E F G H]
 		* Shifted:    [C D E F] [G H A B]
-	* Applies attention separately within each group.
+	* Applies attention separately within each group
  		* Head 0: [A B C D]
    		* Head 1: [E F G H]
-	* In half of the attention heads, shifts the group partition by half the group size.
+	* In half of the attention heads, shifts the group partition by half the group size
  		* Head 2: [C D E F]
    		* Head 3: [G H A B]
      	* Each token to have access to both its local context (in the unshifted heads) and a broader context (in the shifted heads)
-      		* Token C has access to A, B, D (local context in Head 0) and E, F (broader context in Head 2).	 
+      		* Token C has access to A, B, D (local context in Head 0) and E, F (broader context in Head 2)
 
 * **Implementation**:
-	* Can be implemented with just two lines of code during training.
-	* Does not require changes to the model architecture for inference.
+	* Can be implemented with just two lines of code during training
+	* Does not require changes to the model architecture for inference
 	* See [s2_attention_example.ipynb](https://github.com/isabelarvelo/LongLoRA/blob/main/s2_attention_example.ipynb) for a more in depth walk through 
 
  
@@ -219,8 +219,8 @@ Using this method, researchers were able to extend Llama2 7B to 100k context len
  	* <p align="center" width="100%"><img src="attention-pattern-comparison.jpeg" style="width: 70%; min-width: 300px; display: block; margin: auto;"></p>
   
 	* When testing with the same attention pattern used in training (first row), S2-Attn performs well (8.64 perplexity)
-	* When testing with full attention (second row), S2-Attn still performs well (8.12 perplexity).
-	* Other attention patterns like dilated, block sparse, and stride sparse attention show larger discrepancies between training and full-attention testing, or perform poorly overall.
+	* When testing with full attention (second row), S2-Attn still performs well (8.12 perplexity)
+	* Other attention patterns like dilated, block sparse, and stride sparse attention show larger discrepancies between training and full-attention testing, or perform poorly overall
 
 ✅ Significantly reduces computational requirements compared to full fine-tuning
 
@@ -320,24 +320,24 @@ Bringing it all together, we get LongLoRA
 This [demo](https://github.com/isabelarvelo/LongLoRA/blob/main/LongLoRA_finetune_demo.ipynb) illustrates how LongLoRA enables efficient, resource-friendly fine-tuning of large language models with extended context lengths, making advanced NLP capabilities more accessible and adaptable to specific domains like medical question-answering.
 
 * Model and Data Setup:
-	* The demo uses a pre-trained 1.4 billion parameter model (EleutherAI/pythia-1.4b-deduped).
- 	* It fine-tunes this model on a medical question-answering dataset (lavita/medical-qa-datasets) containing 239k examples.
+	* The demo uses a pre-trained 1.4 billion parameter model (EleutherAI/pythia-1.4b-deduped)
+ 	* It fine-tunes this model on a medical question-answering dataset (lavita/medical-qa-datasets) containing 239k examples
 
 * Efficient Fine-tuning:
-	* LongLoRA is applied, enabling fine-tuning of only specific parts of the model (embeddings and normalization layers) along with low-rank adaptation.
-	* The model is quantized to 4-bit precision, significantly reducing memory requirements.
-	* These techniques make it possible to fine-tune a large model on a single GPU (NVIDIA A100) through Google Colab. 
+	* LongLoRA is applied, enabling fine-tuning of only specific parts of the model (embeddings and normalization layers) along with low-rank adaptation
+	* The model is quantized to 4-bit precision, significantly reducing memory requirements
+	* These techniques make it possible to fine-tune a large model on a single GPU (NVIDIA A100) through Google Colab
 
 * Extended Context Length:
-	* The model's context length is extended from its original size to 32,768 tokens, a significant increase that allows for processing much longer inputs.
+	* The model's context length is extended from its original size to 32,768 tokens, a significant increase that allows for processing much longer inputs
 
 * Fast Training:
-	* After data loading and tokenization, the fine-tuning process only takes only about 31 minutes on a single A100 GPU.
-	* This is remarkably fast for fine-tuning a 1.4B parameter model on nearly 240,000 examples.
+	* After data loading and tokenization, the fine-tuning process only takes only about 31 minutes on a single A100 GPU
+	* This is remarkably fast for fine-tuning a 1.4B parameter model on nearly 240,000 examples
 
 * Model Merging and Deployment:
-	* After fine-tuning, the adapter weights are merged back into the base model.
-	* The resulting model is then pushed to the Hugging Face Hub 🤗, making it easily accessible for future use.
+	* After fine-tuning, the adapter weights are merged back into the base model
+	* The resulting model is then pushed to the Hugging Face Hub 🤗, making it easily accessible for future use
 
 <br/>
 <br/>

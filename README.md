@@ -1,4 +1,5 @@
 # DS 5690: LongLoRA Paper Presentation
+> Fall 2024
 
 ## Rubric Deliverables
 
@@ -16,6 +17,7 @@
 | Code demonstration        | [LongLoRA_finetune_demo.ipynb](LongLoRA_finetune_demo.ipynb), [s2_attention_example.ipynb](s2_attention_example.ipynb) |
 | Citation for paper        | References section                             |
 
+Note: This repository is forked from the original LongLora GitHub for ease of reference. 
 
 <br/>
 <br/>
@@ -24,9 +26,10 @@
 
 **Context Length:** Maximum input tokens an LLM can process in a single query, acting as the model's effective "memory window"
 
-<p align="center" width="100%">
-<img src="context-length-viz.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
-</p>
+<figure align="center" width="100%">
+  <img src="context-length-viz.jpeg" alt="LoRA visualization" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+  <figcaption style="text-align: center; font-style: italic; margin-top: 8px;">Figure 1: Visualization of context length by model generated with Claude Sonnet 3.5</figcaption>
+</figure>
 
 * Document Processing
 	* Research papers
@@ -56,8 +59,7 @@
 <p align="center">
   <img src="attention-small-n.jpeg" style="width: 30%; min-width: 50px; display: inline-block; margin-right: 10px;">
   <img src="attention-large-n.jpeg" style="width: 30%; min-width: 50px; display: inline-block;">
-
-  <i>3Blue1Brown</i>
+  <figcaption style="text-align: center; font-style: italic; margin-top: 8px;">Figure 2: Screenshot from 3Blue1Brown YouTube Video: Attention in transformers, step-by-step | DL6 </figcaption>
 </p>
 
 
@@ -145,6 +147,7 @@ Using this method, researchers were able to extend Llama2 7B to 100k context len
 
 <p align="center" width="100%">
 <img src="original_lora_viz.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+<figcaption style="text-align: center; font-style: italic; margin-top: 8px;">Figure 3: Figure taken directly from Intel Fine Tuning Llama Instructions </figcaption>
 </p>
 
 
@@ -180,6 +183,7 @@ Using this method, researchers were able to extend Llama2 7B to 100k context len
 
 <p align="center" width="100%">
 <img src="imgs/Shift-short-attention2.png" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+<figcaption style="text-align: center; font-style: italic; margin-top: 8px;">Figure 4: Shifted short attention2 figure taken directly from LongLora manuscript </figcaption>
 </p>
 
 * **How it works**:
@@ -204,6 +208,7 @@ Using this method, researchers were able to extend Llama2 7B to 100k context len
  
 <p align="center" width="100%">
 <img src="shifted-sparse-attention-pseudocode.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+<figcaption style="text-align: center; font-style: italic; margin-top: 8px;">Figure 5: Shifted sparse attention pseudocode taken directly from LongLora manuscript </figcaption>
 </p>
 
 
@@ -216,7 +221,7 @@ Using this method, researchers were able to extend Llama2 7B to 100k context len
 	* Unlike other efficient attention designs (e.g., dilated or sparse attention), S2-Attn has a smaller gap to standard attention.
 	* Models fine-tuned with S2-Attn retain the original attention architecture during inference which allows the use of existing optimizations and infrastructure for inference
 		* The shifting mechanism in S2-Attn prevents the model from overfitting to specific attention patterns, which allows it to generalize better when using full attention during inference.
- 	* <p align="center" width="100%"><img src="attention-pattern-comparison.jpeg" style="width: 70%; min-width: 300px; display: block; margin: auto;"></p>
+ 	* <p align="center" width="100%"><img src="attention-pattern-comparison.jpeg" style="width: 70%; min-width: 300px; display: block; margin: auto;"><figcaption style="text-align: center; font-style: italic; margin-top: 8px;">Figure 6: Results from LongLora manuscript </figcaption></p>
   
 	* When testing with the same attention pattern used in training (first row), S2-Attn performs well (8.64 perplexity)
 	* When testing with full attention (second row), S2-Attn still performs well (8.12 perplexity)
@@ -250,6 +255,7 @@ Remember that computational efficiency was not the only thing holding LoRA back,
 
 <p align="center" width="100%">
 <img src="long_lora_plus_layers.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+<figcaption style="text-align: center; font-style: italic; margin-top: 8px;">Figure 7: Results from LongLora manuscript </figcaption>
 </p>
 
 * Standard LoRA, even with increasing rank, fails to close the performance gap with full fine-tuning for long-context adaptation (perplexity of 11.44-11.98 vs 8.08 for full fine-tuning).
@@ -261,6 +267,7 @@ Remember that computational efficiency was not the only thing holding LoRA back,
 
 <p align="center" width="100%">
 <img src="long_lora_pseudocode.drawio.png" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+<figcaption style="text-align: center; font-style: italic; margin-top: 8px;">Figure 8: Pseudocode Visualization </figcaption>
 </p>
 
 
@@ -269,6 +276,7 @@ Bringing it all together, we get LongLoRA
 
 <p align="center" width="100%">
 <img src="long_lora_plus.jpeg" alt="LoRA:" style="width: 70%; min-width: 300px; display: block; margin: auto;">
+<figcaption style="text-align: center; font-style: italic; margin-top: 8px;">Figure 9: Complete LongLoRa Architecture Visualization taken directly from manuscript</figcaption>
 </p>
 
 ✅ Significantly reduces computational requirements compared to full fine-tuning
@@ -435,7 +443,8 @@ While LongLoRA's primary contributions are S2-Attn and LoRA+, the paper leverage
   	* LongAlpaca and models with context extension via improved LoRA fine-tuning and full fine-tuning can be found in the original README below
   	* [100k context length Llama 7B....How?](https://jacksoncakes.com/2023/10/05/longlora-efficient-fine-tuning-of-long-context-large-language-models/)
   	* [Easily Train a Specialized LLM: PEFT, LoRA, QLoRA, LLaMA-Adapter, and More](https://cameronrwolfe.substack.com/p/easily-train-a-specialized-llm-peft)
-  	* [3Blue1Brown](https://www.youtube.com/watch?v=eMlx5fFNoYc&t=779s) for explanation of Attention 
+  	* [3Blue1Brown](https://www.youtube.com/watch?v=eMlx5fFNoYc&t=779s) for explanation of Attention
+  	* [Fine-Tune Llama 2 70B Model with DeepSpeed ZeRO-3 and LoRA* on Intel® Gaudi® 2 Accelerators](https://www.intel.com/content/www/us/en/developer/articles/llm/fine-tuning-llama2-70b-and-lora-on-gaudi2.html)
 
 <br/>
 <br/>
